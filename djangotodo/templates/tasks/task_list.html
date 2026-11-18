@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}My tasks &middot; Django To-Do{% endblock %}
+{% block content %}
+<div class="stats">
+  <div class="stat"><strong>{{ stats.total }}</strong><span>Total</span></div>
+  <div class="stat"><strong>{{ stats.active }}</strong><span>Active</span></div>
+  <div class="stat"><strong>{{ stats.done }}</strong><span>Done</span></div>
+  <div class="stat overdue"><strong>{{ stats.overdue }}</strong><span>Overdue</span></div>
+</div>
+
+<form method="post" action="{% url 'task_create' %}" class="card add-form">
+  {% csrf_token %}
+  <input type="text" name="title" placeholder="What needs doing?" required maxlength="200" aria-label="Task title">
+  <textarea name="description" rows="2" maxlength="2000" placeholder="Details (optional)" aria-label="Description"></textarea>
+  <div class="row">
+    <select name="priority" aria-label="Priority">
+      {% for value, label in priorities %}
+        <option value="{{ value }}"{% if value == "medium" %} selected{% endif %}>{{ label }} priority</option>
+      {% endfor %}
+    </select>
+    <input type="date" name="due_date" aria-label="Due date">
+    <button type="submit">Add task</button>
+  </div>
+</form>
+
+<form method="get" action="{% url 'task_list' %}" class="card filters">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search tasks" aria-label="Search">
+  <select name="status" aria-label="Status">
+    <option value="all"{% if status == "all" %} selected{% endif %}>All</option>
+    <option value="active"{% if status == "active" %} selected{% endif %}>Active</option>
+    <option value="completed"{% if status == "completed" %} selected{% endif %}>Completed</option>
+  </select>
+  <select name="priority" aria-label="Priority filter">
+    <option value="">Any priority</option>
+    {% for value, label in priorities %}
+      <option value="{{ value }}"{% if priority == value %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="sort" aria-label="Sort">
+    <option value="newest"{% if sort == "newest" %} selected{% endif %}>Newest</option>
+    <option value="oldest"{% if sort == "oldest" %} selected{% endif %}>Oldest</option>
+    <option value="due"{% if sort == "due" %} selected{% endif %}>Due date</option>
+    <option value="priority"{% if sort == "priority" %} selected{% endif %}>Priority</option>
+  </select>
+  <button type="submit" class="secondary">Apply</button>
+</form>
+
+{% if tasks %}
+  <ul class="tasks">
+    {% for task in tasks %}
+      <li class="task prio-{{ task.priority }}{% if task.completed %} done{% endif %}">
+        <form method="post" action="{% url 'task_toggle' task.pk %}" class="toggle">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="check"
+                  aria-label="{% if task.completed %}Mark as not done{% else %}Mark as done{% endif %}">{% if task.completed %}&#10003;{% endif %}</button>
+        </form>
+        <div class="body">
+          <div class="title">{{ task.title }}</div>
+          {% if task.description %}<p class="desc">{{ task.description }}</p>{% endif %}
+          <div class="meta">
+            <span class="badge {{ task.priority }}">{{ task.get_priority_display }}</span>
+            {% if task.due_date %}
+              <span class="due{% if task.is_overdue %} overdue{% endif %}">{% if task.is_overdue %}Overdue &middot; {% endif %}Due {{ task.due_date|date:"Y-m-d" }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="actions">
+          <a href="{% url 'task_update' task.pk %}">Edit</a>
+          <form method="post" action="{% url 'task_delete' task.pk %}" class="inline"
+                onsubmit="return confirm('Delete this task?');">
+            {% csrf_token %}
+            <button type="submit" class="link danger">Delete</button>
+          </form>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card empty">
+    {% if stats.total == 0 %}
+      No tasks yet. Add your first one above.
+    {% else %}
+      No tasks match your filters.
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if stats.done %}
+  <div class="toolbar">
+    <span class="muted">{{ stats.done }} completed</span>
+    <form method="post" action="{% url 'task_clear_completed' %}" class="inline"
+          onsubmit="return confirm('Remove all completed tasks?');">
+      {% csrf_token %}
+      <button type="submit" class="secondary">Clear completed</button>
+    </form>
+  </div>
+{% endif %}
+{% endblock %}

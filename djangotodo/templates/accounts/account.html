@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Account &middot; Django To-Do{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Account</h1>
+  <p class="muted">Signed in as <strong>{{ user.get_username }}</strong>{% if user.email %} ({{ user.email }}){% endif %}</p>
+</div>
+
+<div class="card">
+  <h2>Change password</h2>
+  <p class="muted">Update the password you use to log in.</p>
+  <a class="btn" href="{% url 'password_change' %}">Change password</a>
+</div>
+
+<div class="card">
+  <h2>Delete account</h2>
+  <p class="muted">Permanently delete your account and all of your tasks.</p>
+  <a class="btn danger" href="{% url 'delete_account' %}">Delete my account&hellip;</a>
+</div>
+{% endblock %}

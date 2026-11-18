@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit task &middot; Flask To-Do{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Edit task</h1>
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" name="title" value="{{ task['title'] }}" required maxlength="200" autofocus>
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="4" maxlength="2000">{{ task['description'] }}</textarea>
+    </div>
+    <div class="field">
+      <label for="priority">Priority</label>
+      <select id="priority" name="priority">
+        {% for p in priorities %}
+          <option value="{{ p }}" {% if task['priority'] == p %}selected{% endif %}>{{ p|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="due_date">Due date</label>
+      <input id="due_date" type="date" name="due_date" value="{{ task['due_date'] or '' }}">
+    </div>
+    <div class="field checkbox-field">
+      <input id="completed" type="checkbox" name="completed" value="1" {% if task['completed'] %}checked{% endif %}>
+      <label for="completed">Completed</label>
+    </div>
+    <div class="form-actions">
+      <button type="submit">Save changes</button>
+      <a class="btn secondary" href="{{ url_for('index') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Log in &middot; Flask To-Do{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Log in</h1>
+  <form method="post">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <div class="field">
+      <label for="identifier">Username or email</label>
+      <input id="identifier" name="identifier" value="{{ identifier }}" required autofocus autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password">
+    </div>
+    <div class="form-actions">
+      <button type="submit">Log in</button>
+      <span class="muted">No account? <a href="{{ url_for('signup') }}">Sign up</a></span>
+    </div>
+  </form>
+</div>
+{% endblock %}

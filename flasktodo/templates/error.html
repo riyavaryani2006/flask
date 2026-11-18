@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} &middot; Flask To-Do{% endblock %}
+{% block content %}
+<div class="card error-page">
+  <div class="code">{{ code }}</div>
+  <p>{{ message }}</p>
+  <a class="btn" href="{{ url_for('index') }}">Back to my tasks</a>
+</div>
+{% endblock %}

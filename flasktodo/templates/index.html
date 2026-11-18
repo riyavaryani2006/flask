@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}My tasks &middot; Flask To-Do{% endblock %}
+{% block content %}
+<div class="stats">
+  <div class="stat"><strong>{{ stats['total'] }}</strong><span>Total</span></div>
+  <div class="stat"><strong>{{ stats['active'] }}</strong><span>Active</span></div>
+  <div class="stat"><strong>{{ stats['done'] }}</strong><span>Done</span></div>
+  <div class="stat overdue"><strong>{{ stats['overdue'] }}</strong><span>Overdue</span></div>
+</div>
+
+<form method="post" action="{{ url_for('add_task') }}" class="card add-form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ request.full_path }}">
+  <input type="text" name="title" placeholder="What needs doing?" required maxlength="200" aria-label="Task title">
+  <textarea name="description" rows="2" maxlength="2000" placeholder="Details (optional)" aria-label="Description"></textarea>
+  <div class="row">
+    <select name="priority" aria-label="Priority">
+      {% for p in priorities %}
+        <option value="{{ p }}" {% if p == 'medium' %}selected{% endif %}>{{ p|capitalize }} priority</option>
+      {% endfor %}
+    </select>
+    <input type="date" name="due_date" aria-label="Due date">
+    <button type="submit">Add task</button>
+  </div>
+</form>
+
+<form method="get" action="{{ url_for('index') }}" class="card filters">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search tasks" aria-label="Search">
+  <select name="status" aria-label="Status">
+    <option value="all" {% if status == 'all' %}selected{% endif %}>All</option>
+    <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+    <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+  </select>
+  <select name="priority" aria-label="Priority filter">
+    <option value="">Any priority</option>
+    {% for p in priorities %}
+      <option value="{{ p }}" {% if priority == p %}selected{% endif %}>{{ p|capitalize }}</option>
+    {% endfor %}
+  </select>
+  <select name="sort" aria-label="Sort">
+    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+    <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+    <option value="due" {% if sort == 'due' %}selected{% endif %}>Due date</option>
+    <option value="priority" {% if sort == 'priority' %}selected{% endif %}>Priority</option>
+  </select>
+  <button type="submit" class="secondary">Apply</button>
+</form>
+
+{% if tasks %}
+  <ul class="tasks">
+    {% for t in tasks %}
+      {% set overdue = t['due_date'] and not t['completed'] and t['due_date'] < today %}
+      <li class="task prio-{{ t['priority'] }} {% if t['completed'] %}done{% endif %}">
+        <form method="post" action="{{ url_for('toggle_task', task_id=t['id']) }}" class="toggle">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="next" value="{{ request.full_path }}">
+          <button type="submit" class="check"
+                  aria-label="{% if t['completed'] %}Mark as not done{% else %}Mark as done{% endif %}">{% if t['completed'] %}&#10003;{% endif %}</button>
+        </form>
+        <div class="body">
+          <div class="title">{{ t['title'] }}</div>
+          {% if t['description'] %}<p class="desc">{{ t['description'] }}</p>{% endif %}
+          <div class="meta">
+            <span class="badge {{ t['priority'] }}">{{ t['priority']|capitalize }}</span>
+            {% if t['due_date'] %}
+              <span class="due {% if overdue %}overdue{% endif %}">{% if overdue %}Overdue &middot; {% endif %}Due {{ t['due_date'] }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="actions">
+          <a href="{{ url_for('edit_task', task_id=t['id']) }}">Edit</a>
+          <form method="post" action="{{ url_for('delete_task', task_id=t['id']) }}" class="inline"
+                onsubmit="return confirm('Delete this task?');">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button type="submit" class="link danger">Delete</button>
+          </form>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card empty">
+    {% if stats['total'] == 0 %}
+      No tasks yet. Add your first one above.
+    {% else %}
+      No tasks match your filters.
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if stats['done'] %}
+  <div class="toolbar">
+    <span class="muted">{{ stats['done'] }} completed</span>
+    <form method="post" action="{{ url_for('clear_completed') }}" class="inline"
+          onsubmit="return confirm('Remove all completed tasks?');">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button type="submit" class="secondary">Clear completed</button>
+    </form>
+  </div>
+{% endif %}
+{% endblock %}

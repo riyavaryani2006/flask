@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Account &middot; Flask To-Do{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Account</h1>
+  <p class="muted">Signed in as <strong>{{ g.user['username'] }}</strong> ({{ g.user['email'] }})</p>
+</div>
+
+<div class="card">
+  <h2>Change password</h2>
+  <form method="post" action="{{ url_for('change_password') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="current_password">Current password</label>
+      <input id="current_password" type="password" name="current_password" required autocomplete="current-password">
+    </div>
+    <div class="field">
+      <label for="new_password">New password</label>
+      <input id="new_password" type="password" name="new_password" required minlength="8" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label for="confirm">Confirm new password</label>
+      <input id="confirm" type="password" name="confirm" required minlength="8" autocomplete="new-password">
+    </div>
+    <button type="submit">Update password</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Delete account</h2>
+  <p class="muted">This permanently deletes your account and all of your tasks.</p>
+  <form method="post" action="{{ url_for('delete_account') }}"
+        onsubmit="return confirm('Permanently delete your account and all tasks?');">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="delete_password">Confirm with your password</label>
+      <input id="delete_password" type="password" name="password" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="danger">Delete my account</button>
+  </form>
+</div>
+{% endblock %}
